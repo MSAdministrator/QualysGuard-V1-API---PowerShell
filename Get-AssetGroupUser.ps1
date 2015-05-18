@@ -42,19 +42,31 @@
         }
 
           
-    
+    $assetgroup
     [xml]$hostinfo = Invoke-RestMethod -Uri "https://qualysapi.qualys.com/msp/asset_group_list.php" -Credential $credential
     
     foreach ($item in $hostinfo.SelectNodes("/ASSET_GROUP_LIST/ASSET_GROUP")){
-        if ($assetgroup -eq $item.TITLE){
-            write-host $item.ASSIGNED_USERS.ASSIGNED_USER.LOGIN.InnerText
-            write-host $item.ASSIGNED_USERS.ASSIGNED_USER.FIRSTNAME.InnerText
-            write-host $item.ASSIGNED_USERS.ASSIGNED_USER.LASTNAME.InnerText
-            write-host $item.ASSIGNED_USERS.ASSIGNED_USER.ROLE.InnerText
-            }
+        #$item.TITLE
+        [array]$aglist += $item
         }
+   # $aglist | Select-Object -Property *
+
+    for ($i=0;$i -lt $aglist.count;$i++){
+
+        if ($assetgroup -eq $aglist[$i].TITLE.InnerText){
+            [array]$aguserlogin += $aglist[$i].ASSIGNED_USERS.ASSIGNED_USER.LOGIN.InnerText
+            [array]$aguserfname += $aglist[$i].ASSIGNED_USERS.ASSIGNED_USER.FIRSTNAME.InnerText
+            [array]$aguserlname += $aglist[$i].ASSIGNED_USERS.ASSIGNED_USER.LASTNAME.InnerText
+            [array]$aguserrole += $aglist[$i].ASSIGNED_USERS.ASSIGNED_USER.ROLE.InnerText
+
+                if ($aguserlogin -ne ""){
+                    for ($a=0;$a -lt $aguserlogin.count;$a++){
+                        $($aguserlogin[$a] + " " + $aguserfname[$a] + " " + $aguserlname[$a] + " " + $aguserrole[$a])
+                    }
+                }
             
-                
-            
-            #tezs
+
+
+        }       
+    }
 }

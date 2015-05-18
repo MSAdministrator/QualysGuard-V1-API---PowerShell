@@ -47,10 +47,11 @@
     
     [xml]$hostinfo = Invoke-RestMethod -Uri $hosturl -Credential $credential
     
-    foreach ($item in $hostinfo.SelectNodes("/HOST/BUSINESS_UNIT_LIST/BUSINESS UNIT")){
+    foreach ($item in $hostinfo.SelectNodes("/HOST/BUSINESS_UNIT_LIST/BUSINESS_UNIT")){
             
                 [array]$businessunit += $item
-                write-host "business unit count:" $businessunit.count
+                $businessunit.InnerText
+               # write-host "business unit count:" $businessunit.count
             }
             #tezs
 }

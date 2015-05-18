@@ -3,6 +3,7 @@
     param (
         [parameter(ParameterSetName="set1")] $ipaddress,
         [parameter(ParameterSetName="set2")] $assetgroup,
+        [parameter(ParameterSetName="set2")] $dnsname,
 
         
         [System.Management.Automation.CredentialAttribute()]$credential,
@@ -44,10 +45,14 @@
         $hosturl = "https://qualysapi.qualys.com/msp/asset_search.php?target_asset_groups=$assetgroup"
         }
 
-          
+    if ($dnsname){
+        $hosturl = "https://qualysapi.qualys.com/msp/asset_search.php?target_asset_groups=All&dns=begin:$dnsname"
+        }          
+
+        $hosturl
     
         [xml]$hostinfo = Invoke-RestMethod -Uri $hosturl -Credential $credential
-        
+        $hostinfo.ASSET_SEARCH_REPORT
         $hostinfo.ASSET_SEARCH_REPORT.HOST_LIST.HOST.IP
         $hostinfo.ASSET_SEARCH_REPORT.HOST_LIST.HOST.DNS
         $hostinfo.ASSET_SEARCH_REPORT.HOST_LIST.HOST.NETBIOS

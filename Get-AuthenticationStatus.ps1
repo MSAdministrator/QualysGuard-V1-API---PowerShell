@@ -57,7 +57,7 @@
         }
 
     [xml]$hostinfo = Invoke-RestMethod -Uri $hosturl -Credential $credential
-
+    #$hostinfo
         #for ($q=1; $q -le 5; $q++){
 
             foreach ($item in $hostinfo.SelectNodes("/HOST/INFO_GATHERED/SEVERITY_LEVEL_1/VULNINFO/QID")){
