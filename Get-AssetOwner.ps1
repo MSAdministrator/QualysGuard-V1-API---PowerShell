@@ -41,6 +41,7 @@
 
     #>
 
+    $hosturl = @()
     if ($ipaddress){
         for ($i=0;$i -lt $ipaddress.count;$i++){
             $hosturl += $("https://qualysapi.qualys.com/msp/get_host_info.php?host_ip=" + ($ipaddress)[$i] + "&general_info=1")
@@ -48,24 +49,32 @@
         }
     
     if ($dnsname){
-        for ($i=0;$i -lt $ipaddress.count;$i++){
-            $hosturl += "https://qualysapi.qualys.com/msp/get_host_info.php?host_dns=$dnsname[$i]&general_info=1"
+        for ($i=0;$i -lt $dnsname.count;$i++){
+            $hosturl += "https://qualysapi.qualys.com/msp/get_host_info.php?host_dns=" + ($dnsname)[$i] + "&general_info=1"
             }
         }
         
     if ($netbios){
-        for ($i=0;$i -lt $ipaddress.count;$i++){
-            $hosturl += "https://qualysapi.qualys.com/msp/get_host_info.php?host_netbios=$netbios[$i]&general_info=1"
+        for ($i=0;$i -lt $netbios.count;$i++){
+            $hosturl += "https://qualysapi.qualys.com/msp/get_host_info.php?host_netbios=" + ($netbios)[$i] + "&general_info=1"
             }
         }
     #this loop will iterate through all the hosturl arrays
-    $hosturl.ToString()
+   
     for ($h=0;$h -lt $hosturl.count;$h++){       
 
-    ("($hosturl)[$h]")
+ 
 
-    [xml]$hostinfo = Invoke-RestMethod -Uri "$hosturl[$h]" -Credential $credential
     
+    [xml]$hostinfo = Invoke-RestMethod -Uri $hosturl[$h] -Credential $credential
+    
+    if ($hostinfo.HOST.ERROR){
+        write-host "ERROR NUMBER " $hostinfo.HOST.ERROR.number
+        write-host $hostinfo.HOST.ERROR.'#text'
+        }
+
+   
+
     foreach ($item in $hostinfo.SelectNodes("/HOST")){
         [array]$owner += $item.OWNER.USER
         [array]$user += $item.USER_LIST.USER

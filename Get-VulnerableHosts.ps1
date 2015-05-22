@@ -1,15 +1,34 @@
 ﻿function Get-VulnerableHosts ()
 {
     param (
-        [parameter(Mandatory=$true,Position=1,HelpMessage="Please enter an IP Address")]
-        [string]$QID,
-        [parameter(Position=2,HelpMessage="Please enter the Scope of your Search.  Default is All.")]
-        [string]$searchscope,
-        [System.Management.Automation.CredentialAttribute()]$credential
+        [parameter(ParameterSetName="set1",
+                   HelpMessage="Please enter a single IP or a range of IPs")]
+                   [ValidateNotNullOrEmpty()]
+                   [ValidatePattern('^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$')]
+                   [string]$targetip,
+
+        [parameter(ParameterSetName="set2",
+                   HelpMessage="Please enter an Asset Group or comma seperated list of Asset Groups. Default is All")]
+                   [ValidateNotNullOrEmpty()] 
+                   [string]$targetag,
+        
+        [parameter(Mandatory=$true,
+                   ValueFromPipeline=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   HelpMessage="Please enter a QID (Qualys ID) to search for")]
+                   [ValidateCount(1,20)]
+                   [ValidateNotNullOrEmpty()]
+                   [string[]]$QID,
+        
+        [parameter(Mandatory=$true,
+                   ValueFromPipeline=$true,
+                   ValueFromPipelineByPropertyName=$true,
+                   HelpMessage="Please provide a crednetial obejct")]
+                   [ValidateNotNullOrEmpty()]
+                   [System.Management.Automation.CredentialAttribute()]$credential
         ) 
     
-    If ($searchscope -eq "") {$searchscope = "All"}
-
+  
     <#
     .SYNOPSIS 
     Query's QualysGuard asset_group_list.php for IPs in specific Asset Groups
@@ -37,44 +56,67 @@
     #>
           
 
+    $hosturl = @()
+    $hostinfo = @()
+    $assetinfo = @()
+
+    if ($targetip){
+            $hosturl = "https://qualysapi.qualys.com/msp/asset_search.php?target_ips=$targetip&vuln_qid=$QID"
+        }
+    
+    if ($targetag){
+        if($targetag -eq ""){
+            $targetag = "All"
+            }
+
+        $hosturl = "https://qualysapi.qualys.com/msp/asset_search.php?target_asset_groups=$targetag&vuln_qid=$QID"
+        }
+        
+  
+    #this loop will iterate through all the hosturl arrays
+
        
-      
-        [xml]$hostinfo = Invoke-RestMethod -Uri "https://qualysapi.qualys.com/msp/asset_search.php?target_asset_groups=$searchscope&vuln_qid=$QID" -Credential $credential
+      #$hosturl
+        [xml]$assetinfo = Invoke-RestMethod -Uri $hosturl -Credential $credential
 
        #$hostinfo | Select-Object -Property *
 
         #for ($q=1; $q -le 5; $q++){
 
-         foreach ($item in $hostinfo.SelectNodes("/ASSET_SEARCH_REPORT/HOST_LIST/HOST")){
+         foreach ($item in $assetinfo.SelectNodes("/ASSET_SEARCH_REPORT/HOST_LIST/HOST")){
             
-            [array]$host += $item
+            [array]$hostinfo += $item
         }
 
         
         $p=0
 
+            $hostinfo.count
        
-            for ($i=0;$i -lt $host.count;$i++){
+            for ($i=0;$i -lt $hostinfo.count;$i++){
                
-                write-host "IP: $($host[$i].IP)"
-                write-host "DNS: `t$($host[$i].DNS.InnerText)"
-                write-host "OS: `t$($host[$i].OPERATING_SYSTEM.InnerText)"
-                write-host "NETBIOS: `t$($host[$i].NETBIOS.InnerText)"
+                write-host "IP: $($hostinfo[$i].IP)"
+                write-host "DNS: `t$($hostinfo[$i].DNS.InnerText)"
+                write-host "OS: `t$($hostinfo[$i].OPERATING_SYSTEM.InnerText)"
+                write-host "NETBIOS: `t$($hostinfo[$i].NETBIOS.InnerText)"
                 
                
 
                 #write-host "Asset Group: " $host[$i].ASSET_GROUPS.ASSET_GROUP_TITLE.InnerText
-                [array]$test += $host[$i].ASSET_GROUPS.ASSET_GROUP_TITLE.InnerText
+                [array]$assetgroup += $hostinfo[$i].ASSET_GROUPS.ASSET_GROUP_TITLE.InnerText
                 
-                if ($test -ne ""){
-                    for ($z=0;$z -lt $test.count;$z++){
-                    write-host "Asset Group: " $test[$z]
+                if ($assetgroup -ne ""){
+                    for ($z=0;$z -lt $assetgroup.count;$z++){
+                    write-host "Asset Group: " $assetgroup[$z]
 
                     }
                 }
+                
+                $authstatus = Get-AuthenticationStatus -ipaddress "$($hostinfo[$i].IP)" -credential $credential
+                write-host "Authentication Status: " $authstatus
                 Write-Host "________________________________________________________________________________"
                 
-                $test = @()
+                $assetgroup = @()
                 
                 if ($p -eq 5){
                     pause
