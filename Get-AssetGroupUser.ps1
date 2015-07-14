@@ -62,6 +62,7 @@
                 if ($aguserlogin -ne ""){
                     for ($a=0;$a -lt $aguserlogin.count;$a++){
                         $($aguserlogin[$a] + " " + $aguserfname[$a] + " " + $aguserlname[$a] + " " + $aguserrole[$a])
+                        $returnvalue += $($aguserlogin[$a] + " " + $aguserfname[$a] + " " + $aguserlname[$a] + " " + $aguserrole[$a])
                     }
                 }
             
@@ -69,4 +70,5 @@
 
         }       
     }
+    return $returnvalue
 }

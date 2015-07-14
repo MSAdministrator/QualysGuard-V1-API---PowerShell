@@ -4,8 +4,7 @@
         [parameter(ParameterSetName="set1",
                    HelpMessage="Please enter a single IP or a range of IPs")]
                    [ValidateNotNullOrEmpty()]
-                   [ValidatePattern('^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$')]
-                   [string]$targetip,
+                   [string[]]$targetip,
 
         [parameter(ParameterSetName="set2",
                    HelpMessage="Please enter an Asset Group or comma seperated list of Asset Groups. Default is All")]
@@ -55,7 +54,7 @@
 
     #>
           
-
+    $vulnhostobject = @()
     $hosturl = @()
     $hostinfo = @()
     $assetinfo = @()
@@ -83,13 +82,40 @@
 
         #for ($q=1; $q -le 5; $q++){
 
+       
+        
          foreach ($item in $assetinfo.SelectNodes("/ASSET_SEARCH_REPORT/HOST_LIST/HOST")){
+            $temphostobject = @()
+           # $assetgroup += $item.ASSET_GROUPS.ASSET_GROUP_TITLE.InnerText
+           # write-host "assetgroup "
+           # $assetgroup  -join ','
+          #  pause  
+
+                #if ($assetgroup -ne ""){
+                 #   for ($z=0;$z -lt $assetgroup.count;$z++){
+                 #   write-host "Asset Group: " $assetgroup[$z]
+                 #   }
+                #}
+
+            #TESTING OUT CREATING A NEW OBJECT
+            $objectproperties = @{ipaddress=$($item.IP);dnsname=$($item.DNS.InnerText);ostype=$($item.OPERATING_SYSTEM.InnerText);QID=$($QID);lastscandate=$($item.LAST_SCAN_DATE);assetgroup=$($item.ASSET_GROUPS.ASSET_GROUP_TITLE.InnerText)}
+
+            $temphostobject = New-Object PSObject -Property $objectproperties
+            $vulnhostobject += $temphostobject
             
+            #TESTING OUT CREATING A NEW OBJECT
             [array]$hostinfo += $item
         }
 
-        
+       # write-host "vulnhostobject " $vulnhostobject 
+        write-host "vulnhostobject | gm"
+        $vulnhostobject | gm
+        #$vulnhostobject.assetgroup
+
         $p=0
+
+       # write-host "hostinfo | gm"
+       # $hostinfo | gm
 
             $hostinfo.count
        
@@ -100,7 +126,16 @@
                 write-host "OS: `t$($hostinfo[$i].OPERATING_SYSTEM.InnerText)"
                 write-host "NETBIOS: `t$($hostinfo[$i].NETBIOS.InnerText)"
                 
-               
+                #$object = New-Object -TypeName PSObject
+                #$object | Add-Member -MemberType NoteProperty -Name ipaddress -Value $($hostinfo[$i].IP)
+                #$object | Add-Member -MemberType NoteProperty -Name dnsname -Value $($hostinfo[$i].DNS.InnerText)
+                #object | Add-Member -MemberType NoteProperty -Name ostype -Value $($hostinfo[$i].OPERATING_SYSTEM.InnerText)
+                #$object | Add-Member -MemberType NoteProperty -Name ports -Value $($hostinfo[$i].PORT_SERVICE_LIST.PORT_SERVICE.PORT.InnerText)
+                #$object | Add-Member -MemberType NoteProperty -Name services -Value $($hostinfo[$i].PORT_SERVICE_LIST.PORT_SERVICE.SERVICE.InnerText)
+                #$object | Add-Member -MemberType NoteProperty -Name QID -Value $($QID)
+                #$object | Add-Member -MemberType NoteProperty -Name lastscandate -Value $($hostinfo[$i].LAST_SCAN_DATE)
+                #$object | Add-Member -MemberType NoteProperty -Name primarycontact -Value 
+             
 
                 #write-host "Asset Group: " $host[$i].ASSET_GROUPS.ASSET_GROUP_TITLE.InnerText
                 [array]$assetgroup += $hostinfo[$i].ASSET_GROUPS.ASSET_GROUP_TITLE.InnerText
@@ -108,20 +143,21 @@
                 if ($assetgroup -ne ""){
                     for ($z=0;$z -lt $assetgroup.count;$z++){
                     write-host "Asset Group: " $assetgroup[$z]
-
+                    #$object | Add-Member -MemberType NoteProperty -Name primarycontact -Value (Get-AssetGroupUser -assetgroup $assetgroup[$z] -credential $credential)
+                    #$object | Add-Member -MemberType NoteProperty -Name secondarycontact -Value (Get-AssetGroupUser -assetgroup $assetgroup[$z] -credential $credential)
                     }
                 }
                 
-                $authstatus = Get-AuthenticationStatus -ipaddress "$($hostinfo[$i].IP)" -credential $credential
-                write-host "Authentication Status: " $authstatus
-                Write-Host "________________________________________________________________________________"
+               # $authstatus = Get-AuthenticationStatus -ipaddress "$($hostinfo[$i].IP)" -credential $credential
+               # write-host "Authentication Status: " $authstatus
+               # Write-Host "________________________________________________________________________________"
                 
                 $assetgroup = @()
                 
-                if ($p -eq 5){
-                    pause
-                    $p=0
-                }
+                #if ($p -eq 5){
+                #    pause
+               #     $p=0
+               # }
                 $p++
 
               #  for ($q=0;$q -lt $host[$i].ASSET_GROUPS.InnerText;$q++){
@@ -131,6 +167,8 @@
                  #   }               
 
 }
+    #$object = New-Object -TypeName PSObject -Property $vulnhostobject
+    return $vulnhostobject
 
-            }
+               }
             
