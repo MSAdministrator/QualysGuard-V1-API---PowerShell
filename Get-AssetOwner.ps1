@@ -78,14 +78,24 @@
     foreach ($item in $hostinfo.SelectNodes("/HOST")){
         [array]$owner += $item.OWNER.USER
         [array]$user += $item.USER_LIST.USER
+
+
+        $objectproperties = @{ownerfname=$($item.OWNER.USER.FIRSTNAME.InnerText);
+                              ownerlname=$($item.OWNER.USER.LASTNAME.InnerText);
+                              ownerlogin=$($item.OWNER.USER.USER_LOGIN.InnerText)
+                              }
+
+        $temphostobject = New-Object PSObject -Property $objectproperties
+
         }
         
-    for ($o=0;$o -lt $owner.count;$o++){
-        Write-Host "Owner: "$($owner[$o].FIRSTNAME.InnerText)$($owner[$o].LASTNAME.InnerText)$($owner[$o].USER_LOGIN.InnerText)
-        }    
-    for ($a=0;$a -lt $user.count;$a++){
-        write-host "User: "$($user[$a].FIRSTNAME.InnerText)$($user[$a].LASTNAME.InnerText)$($user[$a].USER_LOGIN.InnerText)
+  #  for ($o=0;$o -lt $owner.count;$o++){
+  #      Write-Host "Owner: "$($owner[$o].FIRSTNAME.InnerText)$($owner[$o].LASTNAME.InnerText)$($owner[$o].USER_LOGIN.InnerText)
+  #      }    
+  #  for ($a=0;$a -lt $user.count;$a++){
+  #      write-host "User: "$($user[$a].FIRSTNAME.InnerText)$($user[$a].LASTNAME.InnerText)$($user[$a].USER_LOGIN.InnerText)
 
-    }
+ #   }
     }#end of hosturl for loop
+    return $
 }

@@ -79,7 +79,7 @@
     }
 
     #this loop will iterate through all the hosturl arrays
-    write-host "hosturl: " $hosturl
+  #  write-host "hosturl: " $hosturl
     [xml]$assetinfo = Invoke-RestMethod -Uri $hosturl -Credential $credential
       
     foreach ($item in $assetinfo.SelectNodes("/ASSET_SEARCH_REPORT/HOST_LIST/HOST")){
@@ -97,17 +97,20 @@
 
         #TESTING OUT CREATING A NEW OBJECT
         $objectproperties = @{ipaddress=$($item.IP);
-                                dnsname=$($item.DNS.InnerText);
-                                ostype=$($item.OPERATING_SYSTEM.InnerText);
-                                QID=$($QID);lastscandate=$($item.LAST_SCAN_DATE);
-                                assetgroup=$($item.ASSET_GROUPS.ASSET_GROUP_TITLE.InnerText)
-                                }
+                              dnsname=$($item.DNS.InnerText);
+                              netbios=$($item.NETBIOS.InnerText);
+                              ostype=$($item.OPERATING_SYSTEM.InnerText);
+                              QID=$($QID);
+                              QIDResult=$($item.QID_LIST.$($QID).RESULT.InnerText);
+                              lastscandate=$($item.LAST_SCAN_DATE);
+                              assetgroup=$($item.ASSET_GROUPS.ASSET_GROUP_TITLE.InnerText)
+                              }
 
         $temphostobject = New-Object PSObject -Property $objectproperties
-        write-host "temphostobject: " $temphostobject
+       # write-host "temphostobject: " $temphostobject
         $vulnhostobject += $temphostobject
         
-        Write-Host "vulnhostobject count: " $vulnhostobject.count
+      #  Write-Host "vulnhostobject count: " $vulnhostobject.count
         #TESTING OUT CREATING A NEW OBJECT
         #[array]$hostinfo += $item
 
