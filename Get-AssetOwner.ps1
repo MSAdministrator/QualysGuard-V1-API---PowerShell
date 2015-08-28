@@ -43,9 +43,9 @@
 
     $hosturl = @()
     if ($ipaddress){
-        for ($i=0;$i -lt $ipaddress.count;$i++){
-            $hosturl += $("https://qualysapi.qualys.com/msp/get_host_info.php?host_ip=" + ($ipaddress)[$i] + "&general_info=1")
-            }
+       
+            $hosturl = "https://qualysapi.qualys.com/msp/get_host_info.php?host_ip=$($ipaddress)&general_info=1"
+         
         }
     
     if ($dnsname){
@@ -60,13 +60,11 @@
             }
         }
     #this loop will iterate through all the hosturl arrays
-   
-    for ($h=0;$h -lt $hosturl.count;$h++){       
-
- 
-
+   $ownerinfo=@()
+  
+    write-host "hosturl: " $hosturl
     
-    [xml]$hostinfo = Invoke-RestMethod -Uri $hosturl[$h] -Credential $credential
+    [xml]$hostinfo = Invoke-RestMethod -Uri $hosturl -Credential $credential
     
     if ($hostinfo.HOST.ERROR){
         write-host "ERROR NUMBER " $hostinfo.HOST.ERROR.number
@@ -76,17 +74,21 @@
    
 
     foreach ($item in $hostinfo.SelectNodes("/HOST")){
-        [array]$owner += $item.OWNER.USER
-        [array]$user += $item.USER_LIST.USER
+       # [array]$owner += $item.OWNER.USER
+       # [array]$user += $item.USER_LIST.USER
+        $tempownerinfo=@()
+        write-host "userinfo: " $($item.OWNER.USER)
+        write-host "firstname: "$($item.OWNER.USER.FIRSTNAME)
+        write-host "lastname: " $($item.OWNER.USER.LASTNAME.InnerText)
+        write-host "login: " $($item.OWNER.USER.LOGIN.InnerText)
 
-
-        $objectproperties = @{ownerfname=$($item.OWNER.USER.FIRSTNAME.InnerText);
+        $props = @{ownerfname=$($item.OWNER.USER.FIRSTNAME.InnerText);
                               ownerlname=$($item.OWNER.USER.LASTNAME.InnerText);
                               ownerlogin=$($item.OWNER.USER.USER_LOGIN.InnerText)
                               }
 
-        $temphostobject = New-Object PSObject -Property $objectproperties
-
+        $tempownerinfo = New-Object PSObject -Property $props
+        $ownerinfo += $tempownerinfo
         }
         
   #  for ($o=0;$o -lt $owner.count;$o++){
@@ -96,6 +98,5 @@
   #      write-host "User: "$($user[$a].FIRSTNAME.InnerText)$($user[$a].LASTNAME.InnerText)$($user[$a].USER_LOGIN.InnerText)
 
  #   }
-    }#end of hosturl for loop
-    return $
+    return $ownerinfo
 }

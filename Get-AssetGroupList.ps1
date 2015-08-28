@@ -41,51 +41,25 @@
            $custompsobject has two properties - IP and QID
 
     #>
-
-    $object = @()
-    
-    
+      
     [xml]$assetgroupinfo = Invoke-RestMethod -Uri "https://qualysapi.qualys.com/msp/asset_group_list.php" -Credential $credential
     $titleObjs = @()
     foreach ($item in $assetgroupinfo.SelectNodes("/ASSET_GROUP_LIST/ASSET_GROUP")){    
         $titleProps = @{id=$($item.ID);
                         assetgroup=$($item.TITLE.InnerText);
                         ipaddress=$($item.SCANIPS.IP);
-                        firstname=$($item.ASSIGNED_USERS.ASSIGNED_USER.FIRSTNAME.InnerText);
-                        lastname=$($item.ASSIGNED_USERS.ASSIGNED_USER.LASTNAME.InnerText);
-                        login=$($item.ASSIGNED_USERS.ASSIGNED_USER.LOGIN.InnerText);
-                        role=$($item.ASSIGNED_USERS.ASSIGNED_USER.ROLE.InnerText)
+                        user=@{
+                            firstname=$($item.ASSIGNED_USERS.ASSIGNED_USER.FIRSTNAME.InnerText);
+                            lastname=$($item.ASSIGNED_USERS.ASSIGNED_USER.LASTNAME.InnerText);
+                            login=$($item.ASSIGNED_USERS.ASSIGNED_USER.LOGIN.InnerText);
+                            role=$($item.ASSIGNED_USERS.ASSIGNED_USER.ROLE.InnerText);
+                            }
                         }
 
         $titleObj = New-Object PSObject -Property $titleProps
        
-        $titleObjs += $titleObj
-
-        $userObjs = @()
-        foreach ($user in $item.selectNodes("/ASSINGED_USERS/ASSIGNED_USER")){
-       # $props = @()
-            $userProps = @{LOGIN=$($item.LOGIN.InnerText);
-                           FIRSTNAME=$($item.FIRSTNAME.InnerText);
-                           LASTNAME=$($item.LASTNAME.InnerText);
-                           ROLE=$($item.ROLE.InnerText)
-                           }
-
-            $userObj = New-Object PSObject -Property $userProps
-       
-            $userObjs += $userObj
-        }
+        $titleObjs += $titleObj   
     }#foreach loop
-    
-    write-host "titleobjs: " $titleObjs
-
-    write-host "userobjs: " $userObjs
-    
-    return $titleObjs,$userObjs
-    #$props = @{
-
-
-
-
-   # return $object
+    return $titleObjs
 }#Get-AssetGroupList
             

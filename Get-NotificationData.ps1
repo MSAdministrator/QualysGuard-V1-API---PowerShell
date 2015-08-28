@@ -32,19 +32,7 @@ timesdetected
 
 function Get-NotificationData {
 [cmdletbinding()]
-    param (
-        [parameter(ParameterSetName="set1",
-                   ValueFromPipelineByPropertyName=$true,
-                   HelpMessage="Please enter a single IP or a range of IPs")]
-                   [ValidateNotNullOrEmpty()]
-                   [string[]]$ipaddress,
-
-        [parameter(ParameterSetName="set2",
-                   ValueFromPipelineByPropertyName=$true,
-                   HelpMessage="Please enter an Asset Group or comma seperated list of Asset Groups. Default is All")]
-                   [ValidateNotNullOrEmpty()] 
-                   [string[]]$assetgroup,
-        
+    param (      
         [parameter(Mandatory=$true,
                    ValueFromPipeline=$true,
                    ValueFromPipelineByPropertyName=$true,
@@ -94,18 +82,115 @@ function Get-NotificationData {
            $custompsobject has two properties - IP and QID
 
     #>
+   
+  
+    #get the list of asset groups in QualysGuard
+   # $assetGroupInfo = Get-AssetGroupList -credential $credential
+    #Do a search for vulnerable hosts against "All" asset groups with the QID
+
+    ###################################
+    #I'm not sure if I should search get-vulnerablehost by asset group
+    #or get all vulnerable hosts and filter
+
+    #what about
+    #get the vuln info from the knowledgebase
+    #then get the vulnerable hosts
+    #for each vulnerable asset group
+    #get additional asset group info from asset group list
+    #add all of this info into a new custom object
+    #pass the new object to our send notification email
+
+    ####################################
+
+    #$notificationDetails = @()
+    $notificationData = @()
+    $vulnerableHostInfo = @()
+
+ 
+    $vulnerableHostInfo = Get-VulnerableHost -assetgroup "All" -QID $QID -credential $credential
+
+
+    foreach ($vulnhost in $vulnerableHostInfo){
+        $tempnotificationdata = @()
+        write-host "vulnhost.assetgroup: " $vulnhost.assetgroup
+        for ($a=0;$a -le $($vulnhost.assetgroup).count;$a++){
+            write-host "vulnhost.assetgroup[$a]: " $vulnhost.assetgroup[$a]
+            if ($vulnhost.assetgroup[$a] -ne "All"){
+                if ($vulnhost.assetgroup[$a] -notlike "*CSG*"){
+
+                    $tempnotificationdata = Get-QualysNotificationData -ipaddress $($vulnhost.ipaddress) -QID $QID -cred $credential
+                    $notificationData += $tempnotificationdata
+
+                }
+            }
+        }
+    }
+    return $notificationData
+}
+
+
+
+<#
+    for ($i=0;$i -le $vulnerableHostInfo.count;$i++){
+        if ($assetgroupdetails[$x].assetgroup -ne "All"){
+            if ($assetgroupdetails[$x].assetgroup -notlike "*CSG*"){
+
+                            $tempnotificationdata = @()
+                            $props = @()
+                            $props = @{ipaddress=$($vulnerableHostInfo[$i].ipaddress);
+                                       dnsname=$($vulnerableHostInfo[$i].dnsname);
+                                       netbios=$($vulnerableHostInfo[$i].netbios);
+                                       ostype=$($vulnerableHostInfo[$i].ostype);
+                                       QID=$($QID);
+                                       QIDResult=$($vulnerableHostInfo[$i].QIDResult);
+                                       lastscandate=$($vulnerableHostInfo[$i].lastscandate);
+                                       assetgroupid=$($assetgroupdetails[$x].ID);
+                                       assetgroup=$($assetgroupdetails[$x].assetgroup);
+                                       user=@{
+                                            firstname=$($assetgroupdetails[$x].user.firstname);
+                                            lastname=$($assetgroupdetails[$x].user.lastname);
+                                            login=$($assetgroupdetails[$x].user.login);
+                                            role=$($assetgroupdetails[$x].user.role);
+                                       }
+                                       VULN_TYPE=$($vulninfo.VULN_TYPE);
+                                       SEVERITY_LEVEL=$($vulninfo.SEVERITY_LEVEL);
+                                       TITLE=$($vulninfo.TITLE);
+                                       PATCHABLE=$($vulninfo.PATCHABLE);
+                                       VENDOR_REFERENCE=$($vulninfo.VENDOR_REFERENCE);
+                                       CVE=$($vulninfo.CVE);  
+                                       IMPACT=$($vulninfo.IMPACT);
+                                       SOLUTION=$($vulninfo.SOLUTION);
+                                       COMPLIANCE_TYPE=$($vulninfo.COMPLIANCE);
+                                       COMPLIANCE_DESCRIPTION=$($vulninfo.COMPLIANCE_DESCRIPTION);
+                                       
+                                       }
+                            }
+                    $tempnotificationdata = New-Object PSObject -Property $props
+        
+                    $notificationDetails += $tempnotificationdata
+                        
+                    }
+                }
+
+            }
+
+        }
+
+    #for ($q=0;$q -le $notificationDetails.count;$q++){
+    #    if ($notificationDetails.user[$q].role -eq "Unit Manager"){
+    #        write-host "First Name: " $notificationDetails.user[$q].firstname
+    #        write-host "Last Name: " $notificationDetails.user[$q].lastname
+    #        write-host "Login: " $notificationDetails.user[$q].login
+    #        write-host "Role: " $notificationDetails.user[$q].role
+    #    }
+    #}
     
 
-    $vulninfo = Get-KnowledgebaseInfo -QID $($QID) -credential $credential
-    $vulninfo
-    $notificationinfo = Get-VulnerableHost -assetgroup "All" -QID $QID -credential $credential
-    $notificationinfo.ipaddress
-    foreach ($ip in $notificationinfo.ipaddress){
-        $hostinfo += Get-HostInfo -ipaddress $ip -credential $credential
-        $hostinfo
 
-    }
-    $hostinfo
+    
+
+   #return $notificationDetails
+   
         
 <#
 
@@ -200,7 +285,7 @@ write-host "vulnobject | select *: " $notificationinfo | select -Property *
 
 }
 #>
-}
+
 #we first need to get the vulnerability that we are sending an email for
 #next we get the scope (i.e. All, certain Asset Group, Business Unit, etc.)
 

@@ -69,14 +69,15 @@
             
         $objectproperties = @{QID=$($item.QID);
                             VULN_TYPE=$($item.VULN_TYPE.InnerText);
-                            SEVERITY_LEVEL=$($item.SEVERITY_LEVEL.InnerText);
-                            TITLE=$($QID);
-                            PATCHABLE=$($item.PATCHABLE.InnerText);
-                            VENDOR_REFERENCE_LIST=$($item.VENDOR_REFERENCE_LIST.VENDOR_REFERENCE.InnerText);
-                            CVE=$($item.CVE_ID_LIST.CVE_ID.InnerText);  
+                            SEVERITY_LEVEL=$($item.SEVERITY_LEVEL);
+                            TITLE=$($item.TITLE.InnerText);
+                            PATCHABLE=$($item.PATCHABLE);
+                            VENDOR_REFERENCE=$($item.VENDOR_REFERENCE_LIST.VENDOR_REFERENCE.InnerText);
+                            CVE=$($item.CVE_ID_LIST);  
                             IMPACT=$($item.CONSEQUENCE.InnerText);
                             SOLUTION=$($item.SOLUTION.InnerText);
-                            COMPLIANCE=$($item.COMPLIANCE.COMPLIANCE_INFO.COMPLIANCE_TYPE.InnerText)
+                            COMPLIANCE_TYPE=$($item.COMPLIANCE.COMPLIANCE_INFO.COMPLIANCE_TYPE.InnerText);
+                            COMPLIANCE_DESCRIPTION=$($item.COMPLIANCE.COMPLIANCE_INFO.COMPLIANCE_DESCRIPTION.InnerText)
                                 }
 
         $tempvulninfoobject = New-Object PSObject -Property $objectproperties
