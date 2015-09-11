@@ -64,12 +64,9 @@
 
     #>
 
-
     $vulnhostobject = @()
     $hosturl = @()
-    $assetinfo = @()
 
-    
     if ($ip){
         $hosturl = "https://qualysapi.qualys.com/msp/asset_search.php?target_ips=$ip&vuln_qid=$QID"
     }
@@ -78,24 +75,10 @@
         $hosturl = "https://qualysapi.qualys.com/msp/asset_search.php?target_asset_groups=$assetgroup&vuln_qid=$QID"
     }
 
-    #this loop will iterate through all the hosturl arrays
-  #  write-host "hosturl: " $hosturl
     [xml]$assetinfo = Invoke-RestMethod -Uri $hosturl -Credential $credential
       
     foreach ($item in $assetinfo.SelectNodes("/ASSET_SEARCH_REPORT/HOST_LIST/HOST")){
-        $temphostobject = @()
-            # $assetgroup += $item.ASSET_GROUPS.ASSET_GROUP_TITLE.InnerText
-            # write-host "assetgroup "
-            # $assetgroup  -join ','
-            #  pause  
-
-                #if ($assetgroup -ne ""){
-                    #   for ($z=0;$z -lt $assetgroup.count;$z++){
-                    #   write-host "Asset Group: " $assetgroup[$z]
-                    #   }
-                #}
-
-        #TESTING OUT CREATING A NEW OBJECT
+        #CREATING A NEW OBJECT
         $objectproperties = @{ipaddress=$($item.IP);
                               dnsname=$($item.DNS.InnerText);
                               netbios=$($item.NETBIOS.InnerText);
@@ -107,15 +90,8 @@
                               }
 
         $temphostobject = New-Object PSObject -Property $objectproperties
-       # write-host "temphostobject: " $temphostobject
         $vulnhostobject += $temphostobject
-        
-      #  Write-Host "vulnhostobject count: " $vulnhostobject.count
-        #TESTING OUT CREATING A NEW OBJECT
-        #[array]$hostinfo += $item
-
     }#foreach loop
-
     return $vulnhostobject
 }#Get-VulnerableHost
             

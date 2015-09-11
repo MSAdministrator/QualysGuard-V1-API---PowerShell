@@ -1,36 +1,4 @@
-﻿<#
-Need to create the inputobject for send-qualysnotification by calling other functions and getting the data together
-
-Our inputobject variable needs the following properties
-inputobject.owner
-inputobject.assetgroup
-inputobject.businessunit
-vulntitle
-vulnlevel
-cve
-QID
-vendorref
-vulnimpact
-vulnsolution
-exploitability
-compliance
-malware
-
-
-
-it also needs all ips for this owner
-ipaddress
-dns
-hostname
-firstdetection
-lastdetection
-timesdetected
-
-
-
-#>
-
-function Get-NotificationData {
+﻿function Get-NotificationData {
 [cmdletbinding()]
     param (      
         [parameter(Mandatory=$true,
@@ -82,210 +50,251 @@ function Get-NotificationData {
            $custompsobject has two properties - IP and QID
 
     #>
-   
+
+    . "Z:\_Box\_GitHub\QualysGuard-V1-API---PowerShell\Invoke-Parallel.ps1"
+    $Throttle = 5 #threads
   
-    #get the list of asset groups in QualysGuard
-   # $assetGroupInfo = Get-AssetGroupList -credential $credential
-    #Do a search for vulnerable hosts against "All" asset groups with the QID
+    #empty array used for runspacecollection
+    $RunspaceCollection = @()
+    $RunspacePool = [RunspaceFactory]::CreateRunspacePool(1,$Throttle)
+    $RunspacePool.Open()
 
-    ###################################
-    #I'm not sure if I should search get-vulnerablehost by asset group
-    #or get all vulnerable hosts and filter
-
-    #what about
-    #get the vuln info from the knowledgebase
-    #then get the vulnerable hosts
-    #for each vulnerable asset group
-    #get additional asset group info from asset group list
-    #add all of this info into a new custom object
-    #pass the new object to our send notification email
-
-    ####################################
-
-    #$notificationDetails = @()
+    $vulnhostobject = @()
+    $ipaddresses = @()
     $notificationData = @()
     $vulnerableHostInfo = @()
+    $assetgroupinfo = @()
+    $results = @()
+  
+    #each of these XML files are generated every night or a set amount of time.
+    $businessunitinfo = Import-Clixml -Path C:\users\rickardj\Desktop\QualysData\businessunitinfo.xml
+    $assetgroupinfo = Import-Clixml -Path C:\users\rickardj\Desktop\QualysData\assetgroupinfo.xml
 
- 
     $vulnerableHostInfo = Get-VulnerableHost -assetgroup "All" -QID $QID -credential $credential
-
-
+    
     foreach ($vulnhost in $vulnerableHostInfo){
-        $tempnotificationdata = @()
-        write-host "vulnhost.assetgroup: " $vulnhost.assetgroup
-        for ($a=0;$a -le $($vulnhost.assetgroup).count;$a++){
-            write-host "vulnhost.assetgroup[$a]: " $vulnhost.assetgroup[$a]
-            if ($vulnhost.assetgroup[$a] -ne "All"){
-                if ($vulnhost.assetgroup[$a] -notlike "*CSG*"){
+        foreach ($assetgroup in $assetgroupinfo){
+            for ($a=0;$a -lt ($vulnhost.assetgroup).count;$a++){
+                for ($b=0;$b -lt ($assetgroup.assetgrouptitle).count;$a++){
+                    write-host "vulnhost.assetgroup[$a]: "$vulnhost.assetgroup[$a]
+                    write-host "assetgroup.assetgrouptitle: "$assetgroup[$b].assetgrouptitle
+                    if ($vulnhost.assetgroup[$a] -eq $assetgroup[$b].assetgrouptitle]){
+                        for ($u=0; $u -le $($businessunitinfo.userlogin).count;$u++){
+                                write-host "assetgroup.userlogin: "$assetgroup.userlogin
+                                write-host "busiunessunitinfo[$u].userlogin: "$businessunitinfo[$u].userlogin
+                            if ($assetgroup[$b].userlogin -eq $businessunitinfo[$u].userlogin){                        
+                                if ($assetgroup[$b].userrole -eq "Unit Manager"){
+                                
 
-                    $tempnotificationdata = Get-QualysNotificationData -ipaddress $($vulnhost.ipaddress) -QID $QID -cred $credential
-                    $notificationData += $tempnotificationdata
+                                $props = @{businessunitinfo = @{businessunit=$businessunitinfo[$u].businessunit
+                                                                userlogin=$businessunitinfo[$u].userlogin
+                                                                firstname=$businessunitinfo[$u].firstname
+                                                                lastname=$businessunitinfo[$u].lastname
+                                                                title=$businessunitinfo[$u].title
+                                                                email=$businessunitinfo[$u].email
+                                                                userrole=$businessunitinfo[$u].userrole
+                                                                }
+                                           assetgroupinfo= @{userlogin=$assetgroup[$b].userlogin
+                                                             userrole=$assetgroup[$b].userrole
+                                                             assetgrouptitle=$assetgroup[$b].assetgrouptitle
+                                                             ip=$assetgroup[$b].ip
+                                                            }
+                                           vulnerablehost=$vulnhost
+                                           }
+                                $temphostobject = New-Object PSObject -Property $props
+                                $vulnhostobject += $temphostobject
 
-                }
-            }
-        }
-    }
-    return $notificationData
-}
 
 
-
-<#
-    for ($i=0;$i -le $vulnerableHostInfo.count;$i++){
-        if ($assetgroupdetails[$x].assetgroup -ne "All"){
-            if ($assetgroupdetails[$x].assetgroup -notlike "*CSG*"){
-
-                            $tempnotificationdata = @()
-                            $props = @()
-                            $props = @{ipaddress=$($vulnerableHostInfo[$i].ipaddress);
-                                       dnsname=$($vulnerableHostInfo[$i].dnsname);
-                                       netbios=$($vulnerableHostInfo[$i].netbios);
-                                       ostype=$($vulnerableHostInfo[$i].ostype);
-                                       QID=$($QID);
-                                       QIDResult=$($vulnerableHostInfo[$i].QIDResult);
-                                       lastscandate=$($vulnerableHostInfo[$i].lastscandate);
-                                       assetgroupid=$($assetgroupdetails[$x].ID);
-                                       assetgroup=$($assetgroupdetails[$x].assetgroup);
-                                       user=@{
-                                            firstname=$($assetgroupdetails[$x].user.firstname);
-                                            lastname=$($assetgroupdetails[$x].user.lastname);
-                                            login=$($assetgroupdetails[$x].user.login);
-                                            role=$($assetgroupdetails[$x].user.role);
-                                       }
-                                       VULN_TYPE=$($vulninfo.VULN_TYPE);
-                                       SEVERITY_LEVEL=$($vulninfo.SEVERITY_LEVEL);
-                                       TITLE=$($vulninfo.TITLE);
-                                       PATCHABLE=$($vulninfo.PATCHABLE);
-                                       VENDOR_REFERENCE=$($vulninfo.VENDOR_REFERENCE);
-                                       CVE=$($vulninfo.CVE);  
-                                       IMPACT=$($vulninfo.IMPACT);
-                                       SOLUTION=$($vulninfo.SOLUTION);
-                                       COMPLIANCE_TYPE=$($vulninfo.COMPLIANCE);
-                                       COMPLIANCE_DESCRIPTION=$($vulninfo.COMPLIANCE_DESCRIPTION);
-                                       
-                                       }
+                                                        
+                                }
                             }
-                    $tempnotificationdata = New-Object PSObject -Property $props
-        
-                    $notificationDetails += $tempnotificationdata
-                        
+                        }
                     }
                 }
-
             }
-
         }
-
-    #for ($q=0;$q -le $notificationDetails.count;$q++){
-    #    if ($notificationDetails.user[$q].role -eq "Unit Manager"){
-    #        write-host "First Name: " $notificationDetails.user[$q].firstname
-    #        write-host "Last Name: " $notificationDetails.user[$q].lastname
-    #        write-host "Login: " $notificationDetails.user[$q].login
-    #        write-host "Role: " $notificationDetails.user[$q].role
-    #    }
-    #}
-    
-
-
-    
-
-   #return $notificationDetails
-   
-        
-<#
-
-    $vulnobject = @()
-
-  #  $hosturl = "https://qualysapi.qualys.com/msp/get_host_info.php?host_ip=$($txtBoxIPAddress.Text)&general_info=1&vuln_details=1"
-	
-	#$[xml]$hostinfo = Invoke-RestMethod -Uri $hosturl -Credential $cred
-	
-	foreach ($item in $hostinfo.SelectNodes("/HOST")){
-        $objectproperties = @{ipaddress=$($item.IP);
-                              dnsname=$($item.DNS.InnerText);
-                              netbios=$($item.NETBIOS.InnerText);
-                              ostype=$($item.OPERATING_SYSTEM.InnerText);
-                              QID=$($QID);lastscandate=$($item.LAST_SCAN_DATE);
-                              assetgroup=$($item.ASSET_GROUPS.ASSET_GROUP_TITLE.InnerText);
-                              authrecord = $($item.AUTHENTICATION_RECORD_LIST.InnerText);
-		                      comment = $($item.COMMENT.InnerText);
-		                      ownerfname = $($item.OWNER.USER.FIRSTNAME.InnerText);
-		                      ownerlname = $($item.OWNER.USER.LASTNAME.InnerText);
-		                      ownerlogin = $($item.OWNER.USER.USER_LOGIN.InnerText);
-		                      businessunit = $($item.BUSINESS_UNIT_LIST.BUSINESS_UNIT.InnerText);
-                             }
-
-        [array]$aguserfname = $($item.USER_LIST.USER.FIRSTNAME.InnerText)
-        [array]$aguserlname = $($item.USER_LIST.USER.LASTNAME.InnerText)
-		
-        if ($aguserfname -ne "") {
-	        for ($a = 0; $a -lt $aguserfname.count; $a++) {
-		        $userlistname += $($aguserfname[$a] + " " + $aguserlname[$a])	
-	        }
-
-        $objectproperties += @{userlistname=$($userlistname)}
-
-        }
-
-        $notificationinfo = New-Object PSObject -Property $objectproperties
-
-        for ($s = 1; $s -le 3; $s++) {
-			switch ($s) {
-				1 {
-					$vulntype = "VULNS"
-					$vulnTypeDataTable = $datagridviewVuln
-				}
-				2 {
-					$vulntype = "POTENTIAL_VULNS"
-					$vulnTypeDataTable = $datagridviewPotential
-				}
-				3 {
-					$vulntype = "INFO_GATHERED"
-					$vulnTypeDataTable = $datagridviewInfoGathered
-				}
-			}
-			
-		    for ($x = 1; $x -le 5; $x++) {
-			    $xpath = ("//{0}/SEVERITY_LEVEL_{1}/VULNINFO" -f $vulntype,$x)
-			    foreach ($vuln in $item.SelectNodes($xpath)) {
-                    if ($vuln.QID.InnerText -eq $QID){
-				        $obj = New-Object System.Management.Automation.PSObject
-					
-				        $obj | Add-Member -MemberType NoteProperty -Name "QID" -Value $vuln.QID.InnerText | Out-String
-				        $obj | Add-Member -MemberType NoteProperty -Name "SEVERITYLEVEL" -Value $vuln.SEVERITY_LEVEL.InnerText | Out-String
-				        $obj | Add-Member -MemberType NoteProperty -Name "TITLE" -Value $vuln.TITLE.InnerText | Out-String
-				        $obj | Add-Member -MemberType NoteProperty -Name "VULN_STATUS" -Value $vuln.VULN_STATUS.InnerText | Out-String
-				        $obj | Add-Member -MemberType NoteProperty -Name "CATEGORY" -Value $vuln.CATEGORY.InnerText | Out-String
-				        $obj | Add-Member -MemberType NoteProperty -Name "PORT" -Value $vuln.PORT.InnerText | Out-String
-				        $obj | Add-Member -MemberType NoteProperty -Name "SERVICE" -Value $vuln.SERVICE.InnerText | Out-String
-				        $obj | Add-Member -MemberType NoteProperty -Name "PROTOCOL" -Value $vuln.PROTOCOL.InnerText | Out-String
-				        $obj | Add-Member -MemberType NoteProperty -Name "FIRST_FOUND" -Value $vuln.FIRST_FOUND.InnerText | Out-String
-				        $obj | Add-Member -MemberType NoteProperty -Name "LAST_FOUND" -Value $vuln.LAST_FOUND.InnerText | Out-String
-				        $obj | Add-Member -MemberType NoteProperty -Name "TIMES_FOUND" -Value $vuln.TIMES_FOUND.InnerText | Out-String
-				        $obj | Add-Member -MemberType NoteProperty -Name "DIAGNOSIS" -Value $vuln.DIAGNOSIS.InnerText | Out-String
-				        $obj | Add-Member -MemberType NoteProperty -Name "SOLUTION" -Value $vuln.SOLUTION.InnerText | Out-String
-					
-				        $notificationinfo += $obj
-                    }#end of if statement
-			    }#end of foreach
-		    }#end of for loop for vulnerabilities DataTable
-	    }#end of for loop to set items based on switch statement
-
-write-host "vulnobject: "$notificationinfo
-write-host "vulnobject | select *: " $notificationinfo | select -Property *
-
-
-    
-
-    foreach ($ip in $notificationinfo.ipaddress){
-        $notificationinfo += Get-AssetOwner -ipaddress $ip -credential $credential
-
     }
+ 
+
+      
+      return $vulnhostobject  
+      <#
+
+        foreach ($item in $assetgroupinfo){
+            for ($u=0; $u -le $($businessunitinfo.userlogin).count;$u++){
+                if ($($item.userlogin) -eq $businessunitinfo[$u].userlogin){
+                    if ($item.userrole -eq "Unit Manager"){
+
+                        #Expand each IP in $item.ip (which is each item in AssetGroupInfo)
+                        $expandedIPRange = @()
+                        $assetgroupIPs = @()
+                        foreach ($ipaddress in $($item.ip)){
+                           # write-host "ip: " $ip
+                            if ($ipaddress -match "-"){
+                                $splitip = $ipaddress -split '[\-]'
+                                for ($ip=0;$ip -lt $splitip.count;$ip++){
+                                    write-host "splitiprange: " $splitip[$ip]
+                                    if ($ip -eq "0"){
+                                        $startSplitIp = $splitip[$ip]
+                                        write-host "startsplitip: " $startSplitIp
+                                    }
+                                    else{
+                                        $endSplitIp = $splitip[$ip]
+                                   
+                                        $ip1 = ([System.Net.IPAddress]$startSplitIp).GetAddressBytes()
+                                        [Array]::Reverse($ip1)
+                                        $ip1 = ([System.Net.IPAddress]($ip1 -join '.')).Address
+
+                                        $ip2 = ([System.Net.IPAddress]$endSplitIp).GetAddressBytes()
+                                        [Array]::Reverse($ip2)
+                                        $ip2 = ([System.Net.IPAddress]($ip2 -join '.')).Address
+
+                                        for ($x=$ip1; $x -le $ip2; $x++) {
+                                        $ips = ([System.Net.IPAddress]$x).GetAddressBytes()
+                                        [Array]::Reverse($ips)
+                                        $assetgroupIPs += $ips -join '.'
+                                        }
+                                }
+                            }
+                       
+                        }
+                        else{  
+                            $assetgroupIPs += $ipaddress     
+                        }
+                    } 
+
+                    $invokeParallelObj = New-Object PSObject -Property @{QID=$QID
+                                                                         credential=$credential
+                                                                        }
+                                
+                    
+
+                 
+                   $notificationData = Invoke-Parallel -InputObject $assetgroupIPs -Parameter $invokeParallelObj -Throttle 5 -ScriptBlock {
+                        $ipaddress = $_
+                        write-host "ipaddress: "$ipaddress
+                        $credential = $parameter.credential
+                        write-host "credential: "$credential
+                        $QID = $parameter.QID
+                        write-host "QID: " $QID
+ ################################################################################################################################################################################                       
+
+                        $hosturl = @()
+	                    $vulnobject = @()
+	                    $potentialvulnobject = @()
+	                    $infogatheredvulnobject = @()
+	
+	                    $hosturl = "https://qualysapi.qualys.com/msp/get_host_info.php?host_ip=$ipaddress&general_info=1&vuln_details=1"
+	                    $hosturl
+	                    [xml]$hostinfo = Invoke-RestMethod -Uri $hosturl -Credential $credential
+	
+	                    foreach ($thing in $hostinfo.SelectNodes("/HOST"))
+	                    {
+                            for ($s = 1; $s -le 3; $s++) {
+			                    switch ($s) {
+				                    1 {
+					                    $vulntype = "VULNS"
+					                    $vulnTypeDataTable = $datagridviewVuln
+				                    }
+				                    2 {
+					                    $vulntype = "POTENTIAL_VULNS"
+					                    $vulnTypeDataTable = $datagridviewPotential
+				                    }
+				                    3 {
+					                    $vulntype = "INFO_GATHERED"
+					                    $vulnTypeDataTable = $datagridviewInfoGathered
+				                    }
+			                    }
+			
+			                    for ($x = 1; $x -le 5; $x++) {
+				                    $xpath = ("//{0}/SEVERITY_LEVEL_{1}/VULNINFO" -f $vulntype,$x)
+				                    foreach ($vuln in $thing.SelectNodes($xpath)) {
+					
+                                        if ($vuln.QID.InnerText -eq $QID){
+
+                                            for ($a=0;$a -lt $($thing.ASSET_GROUP_LIST.ASSET_GROUP.InnerText).count;$a++){
+
+					                            $obj = New-Object System.Management.Automation.PSObject
+					
+					                            $obj | Add-Member -MemberType NoteProperty -Name "IPADDRESS" -Value $thing.IP | Out-String
+                                                $obj | Add-Member -MemberType NoteProperty -Name "DNSNAME" -Value $thing.DNS.InnerText | Out-String
+                                                $obj | Add-Member -MemberType NoteProperty -Name "NETBIOS" -Value $thing.NETBIOS.InnerText | Out-String
+                                                $obj | Add-Member -MemberType NoteProperty -Name "OPERATING_SYSTEM" -Value $thing.OPERATING_SYSTEM.InnerText | Out-String
+                                                $obj | Add-Member -MemberType NoteProperty -Name "LASTSCANDATE" -Value $thing.LAST_SCAN_DATE | Out-String
+                                                $obj | Add-Member -MemberType NoteProperty -Name "FIRSTNAME" -Value $thing.OWNER.USER.FIRSTNAME.InnerText | Out-String
+                                                $obj | Add-Member -MemberType NoteProperty -Name "LASTNAME" -Value $thing.OWNER.USER.LASTNAME.InnerText | Out-String
+                                                $obj | Add-Member -MemberType NoteProperty -Name "LOGIN" -Value $thing.OWNER.USER.USER_LOGIN.InnerText | Out-String
+                                                $obj | Add-Member -MemberType NoteProperty -Name "ASSETGROUP" -Value $thing.ASSET_GROUP_LIST.ASSET_GROUP[$a].InnerText | Out-String
+                                                $obj | Add-Member -MemberType NoteProperty -Name "BUSINESSUNIT" -Value $thing.OWNER.USER.USER_LOGIN.InnerText | Out-String
+					
+					                            $obj | Add-Member -MemberType NoteProperty -Name "QID" -Value $vuln.QID.InnerText | Out-String
+					                            $obj | Add-Member -MemberType NoteProperty -Name "SEVERITYLEVEL" -Value $vuln.SEVERITY_LEVEL.InnerText | Out-String
+					                            $obj | Add-Member -MemberType NoteProperty -Name "TITLE" -Value $vuln.TITLE.InnerText | Out-String
+					                            $obj | Add-Member -MemberType NoteProperty -Name "VULN_STATUS" -Value $vuln.VULN_STATUS.InnerText | Out-String
+					                            $obj | Add-Member -MemberType NoteProperty -Name "CATEGORY" -Value $vuln.CATEGORY.InnerText | Out-String
+					                            $obj | Add-Member -MemberType NoteProperty -Name "PORT" -Value $vuln.PORT.InnerText | Out-String
+					                            $obj | Add-Member -MemberType NoteProperty -Name "SERVICE" -Value $vuln.SERVICE.InnerText | Out-String
+					                            $obj | Add-Member -MemberType NoteProperty -Name "PROTOCOL" -Value $vuln.PROTOCOL.InnerText | Out-String
+					                            $obj | Add-Member -MemberType NoteProperty -Name "FIRST_FOUND" -Value $vuln.FIRST_FOUND.InnerText | Out-String
+					                            $obj | Add-Member -MemberType NoteProperty -Name "LAST_FOUND" -Value $vuln.LAST_FOUND.InnerText | Out-String
+					                            $obj | Add-Member -MemberType NoteProperty -Name "TIMES_FOUND" -Value $vuln.TIMES_FOUND.InnerText | Out-String
+                                                $obj | Add-Member -MemberType NoteProperty -Name "VENDORREF" -Value $vuln.VENDOR_REFERENCE_LIST.VENDOR_REFERENCE.InnerText | Out-String
+                                                $obj | Add-Member -MemberType NoteProperty -Name "CVE" -Value $vuln.CVE_ID_LIST.InnerText | Out-String
+                                                $obj | Add-Member -MemberType NoteProperty -Name "VULNIMPACT" -Value $vuln.CONSEQUENCE.InnerText | Out-String
+                                                $obj | Add-Member -MemberType NoteProperty -Name "SOLUTION" -Value $vuln.SOLUTION.InnerText | Out-String
+                                                $obj | Add-Member -MemberType NoteProperty -Name "COMPLIANCE" -Value $vuln.COMPLIANCE.COMPLIANCE_INFO.InnerText | Out-String
+                                                $obj | Add-Member -MemberType NoteProperty -Name "EXPLOITABILITY" -Value $vuln.CORRELATION.EXPLOITABILITY.InnerText | Out-String
+                                                $obj | Add-Member -MemberType NoteProperty -Name "MALWARE" -Value $vuln.CORRELATION.MALWARE.InnerText | Out-String
+                   
+					
+					                        $vulnobject += $obj
+                                        }
+                                        }
+				                    }#end of foreach
+			                    }#end of for loop for vulnerabilities DataTable
+		                    }#end of for loop to set items based on switch statement
+                        }
+                        return $vulnobject
 
 
+
+
+ ################################################################################################################################################################################ 
+                    }
+                        $props = @{
+                                    userlogin=$item.userlogin
+                                    userrole=$item.userrole
+                                    ipaddress=$item.ip
+                                    vulndata=$notificationData
+                                    QID=$QID
+                                }
+                                
+
+                                $tempNotificationResults = New-Object PSObject -Property $props
+
+                                $results += $tempNotificationResults
+
+
+
+                              # return $vulnobject
+               #     }#END OF FOR LOOP BEFORE GETTING NOTIFICATION DATA
+          #  }#END OF TEMPNOTIFICATION DATA SRIPT
+                                
+                                
+                            }
+                             
+                    }
+                    
+                }
+                
+       
+    
+
+
+
+    
+    }#end of foreach-parrellel
+    return $results
+ # return $notificationData#>
 }
-#>
-
-#we first need to get the vulnerability that we are sending an email for
-#next we get the scope (i.e. All, certain Asset Group, Business Unit, etc.)
-
