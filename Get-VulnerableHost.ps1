@@ -66,6 +66,8 @@
 
     $vulnhostobject = @()
     $hosturl = @()
+    $assetinfo = @()
+    $item = @()
 
     if ($ip){
         $hosturl = "https://qualysapi.qualys.com/msp/asset_search.php?target_ips=$ip&vuln_qid=$QID"

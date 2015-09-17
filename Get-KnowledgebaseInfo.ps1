@@ -67,17 +67,34 @@
     foreach ($item in $vulninfo.SelectNodes("/VULNS/VULN")){
         $tempvulninfoobject = @()
             
-        $objectproperties = @{QID=$($item.QID);
-                            VULN_TYPE=$($item.VULN_TYPE.InnerText);
-                            SEVERITY_LEVEL=$($item.SEVERITY_LEVEL);
-                            TITLE=$($item.TITLE.InnerText);
-                            PATCHABLE=$($item.PATCHABLE);
-                            VENDOR_REFERENCE=$($item.VENDOR_REFERENCE_LIST.VENDOR_REFERENCE.InnerText);
-                            CVE=$($item.CVE_ID_LIST);  
-                            IMPACT=$($item.CONSEQUENCE.InnerText);
-                            SOLUTION=$($item.SOLUTION.InnerText);
-                            COMPLIANCE_TYPE=$($item.COMPLIANCE.COMPLIANCE_INFO.COMPLIANCE_TYPE.InnerText);
+        $objectproperties = @{QID=$($item.QID)
+                            VULN_TYPE=$($item.VULN_TYPE.InnerText)
+                            SEVERITY_LEVEL=$($item.SEVERITY_LEVEL)
+                            TITLE=$($item.TITLE.InnerText)
+                            CATEGORY=$($item.CATEGORY.InnerText)
+                            BUGTRAQ=$($item.BUGTRAQ_ID_LIST.BUGTRAQ_ID)
+                            PATCHABLE=$($item.PATCHABLE)
+                            VENDOR_REFERENCE=$($item.VENDOR_REFERENCE_LIST.VENDOR_REFERENCE.InnerText)
+                            CVE=$($item.CVE_ID_LIST)
+                            DIAGNOSIS=$($item.DIAGNOSIS.InnerText)
+                            CONSEQUENCE=$($item.CONSEQUENCE.InnerText)
+                            SOLUTION=$($item.SOLUTION.InnerText)
+                            COMPLIANCE_TYPE=$($item.COMPLIANCE.COMPLIANCE_INFO.COMPLIANCE_TYPE.InnerText)
                             COMPLIANCE_DESCRIPTION=$($item.COMPLIANCE.COMPLIANCE_INFO.COMPLIANCE_DESCRIPTION.InnerText)
+                            EXPLOITABILITY=$($item.CORRELATION.EXPLOITABILITY)
+                            MALWARE=$($item.CORRELATION.MALWARE)
+                            CVSS_BASE=$($item.CVSS_BASE)
+                            CVSS_TEMPORAL=$($item.CVSS_TEMPORAL)
+                            CVSS_ACCESS_VECTOR=$($item.CVSS_ACCESS_VECTOR)
+                            CVSS_ACCESS_COMPLEXITY=$($item.CVSS_ACCESS_COMPLEXITY)
+                            CVSS_AUTHENTICATION=$($item.CVSS_AUTHENTICATION)
+                            CVSS_CONFIDENTIALITY_IMPACT=$($item.CVSS_CONFIDENTIALITY_IMPACT)
+                            CVSS_INTEGRITY_IMPACT=$($item.CVSS_INTEGRITY_IMPACT)
+                            CVSS_AVAILABILITY_IMPACT=$($item.CVSS_AVAILABILITY_IMPACT)
+                            CVSS_EXPLOITABILITY=$($item.CVSS_EXPLOITABILITY)
+                            CVSS_REMEDIATION_LEVEL=$($item.CVSS_REMEDIATION_LEVEL)
+                            CVSS_REPORT_CONFIDENCE=$($item.CVSS_REPORT_CONFIDENCE)
+                            PCI_FLAG=$($item.PCI_FLAG)
                                 }
 
         $tempvulninfoobject = New-Object PSObject -Property $objectproperties
