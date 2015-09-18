@@ -107,86 +107,85 @@ $html = @"
 
 </head>
 <body style="color: #000000; font-family: Arial, sans-serif; font-size: 12px; line-height: 20px;">
-$($DoITLogoBase64)
+<img src="https://raw.githubusercontent.com/MSAdministrator/QualysGuard-V1-API---PowerShell/master/images/doit_logo.jpg" alt="logo" />
 
 <table border="0" cellpadding="0" cellspacing="0" class="emailButton" style="-webkit-border-radius: 3px; -moz-border-radius: 3px; border-radius: 5px; background-color:#505050; border:1px solid #353535;" width="100%" arcsize="13%">
     <tr>
         <td align="center" valign="middle" style="color:#FFFFFF; font-family:Helvetica, Arial, sans-serif; font-size:16px; font-weight:bold; letter-spacing:-.5px; line-height:150%; padding-top:15px; padding-right:30px; padding-bottom:15px; padding-left:30px;">
-            <a style="color:#FFFFFF; text-decoration:none;">ISAM Vulnerability Notification</a>
+            <a style="color:#FFFFFF; text-decoration:none;">ISAM Enterprise Vulnerability Scanning Notification</a>
         </td>
     </tr>
 </table>
 
 <p>Date: $(Get-Date) </p>
 
-
+<div style="color:#00000; font-family:Helvetica, Arial, sans-serif; font-size:12px; letter-spacing:-.5px; line-height:150%; padding-top:5px; padding-right:5px; padding-bottom:5px; padding-left:5px;">
 <p>Hello <b>$($unitManagerName[$u])</b>,</p>
-
+<div style="color:#00000; font-family:Helvetica, Arial, sans-serif; font-size:12px; letter-spacing:-.5px; line-height:150%; padding-top:5px; padding-right:5px; padding-bottom:5px; padding-left:5px;">
 <p><b>You have been identified as the Primary Contact for the following Business Unit(s): </b></p>
 <ul>
 	$($businessunitlist)
 </ul>
+</div>
+<div style="color:#00000; font-family:Helvetica, Arial, sans-serif; font-size:12px; letter-spacing:-.5px; line-height:150%; padding-top:5px; padding-right:5px; padding-bottom:5px; padding-left:5px;">
 <p><b>The following Asset Group(s) belong to your Business Unit: </b></p>
 <ul>
 	$($assetgrouplist)
 </ul>
-
+</div>
+</div>
 <table border="0" cellpadding="0" cellspacing="0" class="emailButton" style="-webkit-border-radius: 3px; -moz-border-radius: 3px; border-radius: 5px; background-color:#505050; border:1px solid #353535;" width="100%" arcsize="13%">
     <tr>
-        <td align="center" valign="middle" style="color:#FFFFFF; font-family:Helvetica, Arial, sans-serif; font-size:16px; font-weight:bold; letter-spacing:-.5px; line-height:150%; padding-top:15px; padding-right:30px; padding-bottom:15px; padding-left:30px;">
+        <td align="center" valign="middle" style="color:#FFFFFF; font-family:Helvetica, Arial, sans-serif; font-size:16px; font-weight:bold; line-height:150%; padding-top:15px; padding-right:30px; padding-bottom:15px; padding-left:30px;">
             <a style="color:#FFFFFF; text-decoration:none;">The following vulnerability has been detected</a>
         </td>
     </tr>
 </table>
-
-
-
-<style>
-table, td {
-    border: 1px solid black;
-}
-</style>
-
-<div>
-	<table cellspacing="0" cellpadding="0" border="0">
-		
+	
             $(switch ($inputobject.QualysKBInfo[0].SEVERITY_LEVEL){
-                1 { $image = "$($level1)"
+                1 { $image = "https://raw.githubusercontent.com/MSAdministrator/QualysGuard-V1-API---PowerShell/master/images/level1.png"
                     $alt = "Level 1" 
                     }
-                2 { $image = "$($level2)" 
+                2 { $image = "https://raw.githubusercontent.com/MSAdministrator/QualysGuard-V1-API---PowerShell/master/images/level2.png" 
                     $alt = "Level 2" 
                     }
-                3 { $image = "$($level3)" 
+                3 { $image = "https://raw.githubusercontent.com/MSAdministrator/QualysGuard-V1-API---PowerShell/master/images/level3.png" 
                     $alt = "Level 3"
                     }
-                4 { $image = "$($level4)" 
+                4 { $image = "https://raw.githubusercontent.com/MSAdministrator/QualysGuard-V1-API---PowerShell/master/images/level4.png" 
                     $alt = "Level 4"
                     }
-                5 { $image = "$($level5)" 
+                5 { $image = "https://raw.githubusercontent.com/MSAdministrator/QualysGuard-V1-API---PowerShell/master/images/level5.png" 
                     $alt = "Level 5"
                     }
                 })
-           
+
+<style>
+th,td {border: 1px solid black;}
+</style>
+
+
+
+	<table width ="100%" cellspacing="0" cellpadding="0" border="0" style="color:#00000; font-family:Helvetica, Arial, sans-serif; font-size:12px; line-height:150%; padding-top:5px; padding-right:5px; padding-bottom:5px; padding-left:5px;">          
             <tr>
-                <th width="150"><td><b>Vulnerability</b>:</td></th>
+                <th width="150"><b>Vulnerability</b>:</th>
 			    <td>$($inputobject.QualysKBInfo[0].Title)</td>
             </tr>
             <tr>
-                <th width="150"><td><b>DIAGNOSIS</b>:</td></th>
+                <th width="150"><b>DIAGNOSIS</b>:</th>
 			    <td>$($inputobject.QualysKBInfo[0].DIAGNOSIS)</td>
             </tr>
             <tr>
-                <th width="150"><td><b>IMPACT</b>:</td></th>
+                <th width="150"><b>IMPACT</b>:</th>
 			    <td>$($inputobject.QualysKBInfo[0].CONSEQUENCE)</td>
             </tr>
             <tr>
-                <th width="150"><td><b>Level</b>:</td></th>
-                <td>$($image)</td>
+                <th width="150"><b>Level</b>:</th>
+                <td><img src="$($image)" alt="$($alt)" /></td>
             </tr>
 
             <tr>
-                <th width="150"><td><b>Common Vulnerabilities and Exposures ID(s)</b>:</td></th>
+                <th width="150"><b>Common Vulnerabilities and Exposures ID(s)</b>:</th>
 			    <td>
            $(if (($inputobject.QualysKBInfo[0].CVE) -eq $null){
                 $cvelist = "No CVE data at this time"
@@ -202,19 +201,27 @@ table, td {
             </td>
             </tr>
             <tr>
-			    <th width="150"><td><b>Qualys ID</b>:</td></th>
+			    <th width="150"><b>Qualys ID</b>:</th>
                 <td>$($inputobject.QualysKBInfo[0].QID)</td>
             </tr>
             <tr>
-			    <th width="150"><td><b>Vendor Reference</b>:</td></th>
+			    <th width="150"><b>Vendor Reference</b>:</th>
                 <td>$(if ($inputobject.QualysKBInfo[0].VENDOR_REFERENCE -ne $null){$($inputobject.QualysKBInfo[0].VENDOR_REFERENCE)})</td>
 		    </tr>
 	</table>
-</div>
+
 <br>
-<p><b>The following IP(s) are vulnerable: </b></p>
-<div>
-	<table>
+<table border="0" cellpadding="0" cellspacing="0" class="emailButton" style="-webkit-border-radius: 3px; -moz-border-radius: 3px; border-radius: 5px; background-color:#505050; border:1px solid #353535;" width="100%" arcsize="13%">
+    <tr>
+        <td align="center" valign="middle" style="color:#FFFFFF; font-family:Helvetica, Arial, sans-serif; font-size:16px; font-weight:bold; line-height:150%; padding-top:15px; padding-right:30px; padding-bottom:15px; padding-left:30px;">
+            <a style="color:#FFFFFF; text-decoration:none;">The following IP(s) are vulnerable:</a>
+        </td>
+    </tr>
+</table>
+
+
+
+	<table align="middle" style="color:#00000; font-family:Helvetica, Arial, sans-serif; font-size:12px; line-height:150%; padding-top:5px; padding-right:5px; padding-bottom:5px; padding-left:5px;">
 		<tr>
             <th><center><b>IP Address</b>:</th>
             <th><center><b>DNS Name</b>:</th>
@@ -223,38 +230,27 @@ table, td {
         </tr>
         $($vulnerablesystems)
 	</table>
-</div>
 
 
 
-<div align="center">
+
+<div align="center" style="color:#00000; font-family:Helvetica, Arial, sans-serif; font-size:12px; line-height:150%; padding-top:5px; padding-right:5px; padding-bottom:5px; padding-left:5px;">
 	<p><b><mark>UNPATCHED LEVEL 4/5 VULNERABILITIES MAY RESULT IN DEVICE DISCONNECTION FROM THE NETWORK AFTER 14 DAYS</mark></b></p>
 </div>
 
-<p><b>Possible Impact of Vulnerability:</b></p>
-<ul>
-	<li>$($inputobject.QualysKBInfo[0].CONSEQUENCE)</li>
-</ul>
+
+<br>
+<table border="0" cellpadding="0" cellspacing="0" class="emailButton" style="-webkit-border-radius: 3px; -moz-border-radius: 3px; border-radius: 5px; background-color:#505050; border:1px solid #353535;" width="100%" arcsize="13%">
+    <tr>
+        <td align="center" valign="middle" style="color:#FFFFFF; font-family:Helvetica, Arial, sans-serif; font-size:16px; font-weight:bold; line-height:150%; padding-top:15px; padding-right:30px; padding-bottom:15px; padding-left:30px;">
+            <a style="color:#FFFFFF; text-decoration:none;">Additional Information</a>
+        </td>
+    </tr>
+</table>
 
 <p><b>Possible Solution(s):</b></p>
 <ul>
 	<li>$($inputobject.QualysKBInfo[0].SOLUTION)</li>
-</ul>
-
-<p><b>Compliance:</b></p>
-<ul>
-	<li>
-    $(if (($inputobject.QualysKBInfo[0].COMPLIANCE_DESCRIPTION) -eq $null){
-                $compliancedata = "No Compliance data at this time"
-                $($compliancedata)
-            }
-           else {
-                $(for ($a=0;$a -le $($inputobject.QualysKBInfo[0].COMPLIANCE_DESCRIPTION).count; $a++){
-                    $compliancedata += "$($inputobject.QualysKBInfo[0].COMPLIANCE_DESCRIPTION)"
-                })
-	            $($compliancedata)
-            })
-        </li>
 </ul>
 
 <p><b>Exploitability</b></p>
@@ -290,7 +286,7 @@ table, td {
 <br>
 <br>
 
-<p align="center"><b><u><i>If you need assistance in vulnerability remediation, please contact ISAM at (573) 884-9112 or send an email to <a href="qualys@missouri.edu">qualys@missouri.edu</a></b></u></i></p>
+<p align="center"><b><u><i>If you need assistance with vulnerability remediation, please contact ISAM at (573) 884-9112 or send an email to <a href="qualys@missouri.edu">qualys@missouri.edu</a></b></u></i></p>
 
 
 </body>
@@ -300,18 +296,18 @@ table, td {
 #write-host "HTML output: "$html
 
 $Outlook = New-Object -ComObject Outlook.Application
-    $logo = New-Object Net.Mail.Attachment("Z:\_Box\_GitHub\QualysGuard-V1-API---PowerShell\images\doit_logo.jpg")
-    $logo.ContentId = "logo"
-    $level1 = New-Object Net.Mail.Attachment("Z:\_Box\_GitHub\QualysGuard-V1-API---PowerShell\images\level1.png")
-    $level1.ContentId = "level1"
-    $level2 = New-Object Net.Mail.Attachment("Z:\_Box\_GitHub\QualysGuard-V1-API---PowerShell\images\level2.png")
-    $level2.ContentId = "level2"
-    $level3 = New-Object Net.Mail.Attachment("Z:\_Box\_GitHub\QualysGuard-V1-API---PowerShell\images\level3.png")
-    $level3.ContentId = "level3"
-    $level4 = New-Object Net.Mail.Attachment("Z:\_Box\_GitHub\QualysGuard-V1-API---PowerShell\images\level4.png")
-    $level4.ContentId = "level4"
-    $level5 = New-Object Net.Mail.Attachment("Z:\_Box\_GitHub\QualysGuard-V1-API---PowerShell\images\level5.png")
-    $level5.ContentId = "level5"
+  #  $logo = New-Object Net.Mail.Attachment("Z:\_Box\_GitHub\QualysGuard-V1-API---PowerShell\images\doit_logo.jpg")
+  #  $logo.ContentId = "logo"
+  #  $level1 = New-Object Net.Mail.Attachment("Z:\_Box\_GitHub\QualysGuard-V1-API---PowerShell\images\level1.png")
+  #  $level1.ContentId = "level1"
+  #  $level2 = New-Object Net.Mail.Attachment("Z:\_Box\_GitHub\QualysGuard-V1-API---PowerShell\images\level2.png")
+  #  $level2.ContentId = "level2"
+  #  $level3 = New-Object Net.Mail.Attachment("Z:\_Box\_GitHub\QualysGuard-V1-API---PowerShell\images\level3.png")
+  #  $level3.ContentId = "level3"
+  #  $level4 = New-Object Net.Mail.Attachment("Z:\_Box\_GitHub\QualysGuard-V1-API---PowerShell\images\level4.png")
+  #  $level4.ContentId = "level4"
+  #  $level5 = New-Object Net.Mail.Attachment("Z:\_Box\_GitHub\QualysGuard-V1-API---PowerShell\images\level5.png")
+  #  $level5.ContentId = "level5"
 
     $Mail = $Outlook.CreateItem(0)
     $Mail.To = 'rickardj@missouri.edu'
@@ -320,7 +316,7 @@ $Outlook = New-Object -ComObject Outlook.Application
     
     $Mail.HTMLBody =$html
     $Mail.Send()
-
+   # $Mail.Dispose()
 
     $assetgrouplist = @()
     $businessunitlist = @()
