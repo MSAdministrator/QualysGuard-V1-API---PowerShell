@@ -100,6 +100,7 @@ $html = @"
             font-size:18px !important;
         }
     }
+
 </style>
 
 
@@ -107,8 +108,17 @@ $html = @"
 
 </head>
 <body style="color: #000000; font-family: Arial, sans-serif; font-size: 12px; line-height: 20px;">
-<img src="https://raw.githubusercontent.com/MSAdministrator/QualysGuard-V1-API---PowerShell/master/images/doit_logo.jpg" alt="logo" />
 
+<table border="0" cellpadding="0" cellspacing="0" width="100%">
+<div id="header" >
+        <div style="float:left; margin-top:20px" >
+            <img src="https://raw.githubusercontent.com/MSAdministrator/QualysGuard-V1-API---PowerShell/master/images/doit_logo.jpg" height="70" alt="logo" align="left" />
+        </div>
+        <div style="float:right; margin-top:20px" >
+            <img src="https://raw.githubusercontent.com/MSAdministrator/QualysGuard-V1-API---PowerShell/master/images/mu_logo.png" height="70" alt="logo" align="right" />
+        </div>
+    </div>
+</table>
 <table border="0" cellpadding="0" cellspacing="0" class="emailButton" style="-webkit-border-radius: 3px; -moz-border-radius: 3px; border-radius: 5px; background-color:#505050; border:1px solid #353535;" width="100%" arcsize="13%">
     <tr>
         <td align="center" valign="middle" style="color:#FFFFFF; font-family:Helvetica, Arial, sans-serif; font-size:16px; font-weight:bold; letter-spacing:-.5px; line-height:150%; padding-top:15px; padding-right:30px; padding-bottom:15px; padding-left:30px;">
@@ -116,23 +126,20 @@ $html = @"
         </td>
     </tr>
 </table>
-
+</div>
 <p>Date: $(Get-Date) </p>
 
 <div style="color:#00000; font-family:Helvetica, Arial, sans-serif; font-size:12px; letter-spacing:-.5px; line-height:150%; padding-top:5px; padding-right:5px; padding-bottom:5px; padding-left:5px;">
+
 <p>Hello <b>$($unitManagerName[$u])</b>,</p>
-<div style="color:#00000; font-family:Helvetica, Arial, sans-serif; font-size:12px; letter-spacing:-.5px; line-height:150%; padding-top:5px; padding-right:5px; padding-bottom:5px; padding-left:5px;">
 <p><b>You have been identified as the Primary Contact for the following Business Unit(s): </b></p>
 <ul>
-	$($businessunitlist)
+	$($businessunitlist | sort -Unique)
 </ul>
-</div>
-<div style="color:#00000; font-family:Helvetica, Arial, sans-serif; font-size:12px; letter-spacing:-.5px; line-height:150%; padding-top:5px; padding-right:5px; padding-bottom:5px; padding-left:5px;">
 <p><b>The following Asset Group(s) belong to your Business Unit: </b></p>
 <ul>
-	$($assetgrouplist)
+	$($assetgrouplist | sort -Unique)
 </ul>
-</div>
 </div>
 <table border="0" cellpadding="0" cellspacing="0" class="emailButton" style="-webkit-border-radius: 3px; -moz-border-radius: 3px; border-radius: 5px; background-color:#505050; border:1px solid #353535;" width="100%" arcsize="13%">
     <tr>
@@ -168,44 +175,44 @@ th,td {border: 1px solid black;}
 
 	<table width ="100%" cellspacing="0" cellpadding="0" border="0" style="color:#00000; font-family:Helvetica, Arial, sans-serif; font-size:12px; line-height:150%; padding-top:5px; padding-right:5px; padding-bottom:5px; padding-left:5px;">          
             <tr>
-                <th width="150"><b>Vulnerability</b>:</th>
+                <th width="150" bgcolor="#A0A0A0"><b>Vulnerability</b>:</th>
 			    <td>$($inputobject.QualysKBInfo[0].Title)</td>
             </tr>
             <tr>
-                <th width="150"><b>DIAGNOSIS</b>:</th>
+                <th width="150" bgcolor="#A0A0A0""><b>DIAGNOSIS</b>:</th>
 			    <td>$($inputobject.QualysKBInfo[0].DIAGNOSIS)</td>
             </tr>
             <tr>
-                <th width="150"><b>IMPACT</b>:</th>
+                <th width="150" bgcolor="#A0A0A0"><b>IMPACT</b>:</th>
 			    <td>$($inputobject.QualysKBInfo[0].CONSEQUENCE)</td>
             </tr>
             <tr>
-                <th width="150"><b>Level</b>:</th>
+                <th width="150" bgcolor="#A0A0A0"><b>Level</b>:</th>
                 <td><img src="$($image)" alt="$($alt)" /></td>
             </tr>
 
             <tr>
-                <th width="150"><b>Common Vulnerabilities and Exposures ID(s)</b>:</th>
+                <th width="150" bgcolor="#A0A0A0"><b>Common Vulnerabilities and Exposures ID(s)</b>:</th>
 			    <td>
            $(if (($inputobject.QualysKBInfo[0].CVE) -eq $null){
                 $cvelist = "No CVE data at this time"
                 $($cvelist)
             }
            else {
-                $(for ($a=0;$a -le $($inputobject.QualysKBInfo[0].cve.cve_id).count; $a++){
-                    $cvelist += "'\('$($inputobject.QualysKBInfo.cve.cve_id[$a])'\)'"
+                $(foreach ($cve in $inputobject.QualysKBInfo[0].cve.cve_id){
+	                $cvelist += "CVE: $($cve.id.InnerText) URL: $($cve.url.InnerText)"
+
                 })
-	            $($cvelist.ID)
-                $($cvelist.URL)
+                $($cvelist -join "`n")
             })
             </td>
             </tr>
             <tr>
-			    <th width="150"><b>Qualys ID</b>:</th>
+			    <th width="150" bgcolor="#A0A0A0"><b>Qualys ID</b>:</th>
                 <td>$($inputobject.QualysKBInfo[0].QID)</td>
             </tr>
             <tr>
-			    <th width="150"><b>Vendor Reference</b>:</th>
+			    <th width="150" bgcolor="#A0A0A0"><b>Vendor Reference</b>:</th>
                 <td>$(if ($inputobject.QualysKBInfo[0].VENDOR_REFERENCE -ne $null){$($inputobject.QualysKBInfo[0].VENDOR_REFERENCE)})</td>
 		    </tr>
 	</table>
@@ -223,10 +230,10 @@ th,td {border: 1px solid black;}
 
 	<table align="middle" style="color:#00000; font-family:Helvetica, Arial, sans-serif; font-size:12px; line-height:150%; padding-top:5px; padding-right:5px; padding-bottom:5px; padding-left:5px;">
 		<tr>
-            <th><center><b>IP Address</b>:</th>
-            <th><center><b>DNS Name</b>:</th>
-            <th><center><b>NETBIOS Name</b>:</th>
-            <th><center><b>Last Scan Date</b>:</th>
+            <th bgcolor="#A0A0A0"><center><b>IP Address</b>:</th>
+            <th bgcolor="#A0A0A0"><center><b>DNS Name</b>:</th>
+            <th bgcolor="#A0A0A0"><center><b>NETBIOS Name</b>:</th>
+            <th bgcolor="#A0A0A0"><center><b>Last Scan Date</b>:</th>
         </tr>
         $($vulnerablesystems)
 	</table>
@@ -234,7 +241,7 @@ th,td {border: 1px solid black;}
 
 
 
-<div align="center" style="color:#00000; font-family:Helvetica, Arial, sans-serif; font-size:12px; line-height:150%; padding-top:5px; padding-right:5px; padding-bottom:5px; padding-left:5px;">
+<div align="center" style="color:#00000; font-family:Helvetica, Arial, sans-serif; font-size:18px; line-height:150%; padding-top:5px; padding-right:5px; padding-bottom:5px; padding-left:5px;">
 	<p><b><mark>UNPATCHED LEVEL 4/5 VULNERABILITIES MAY RESULT IN DEVICE DISCONNECTION FROM THE NETWORK AFTER 14 DAYS</mark></b></p>
 </div>
 
@@ -248,39 +255,35 @@ th,td {border: 1px solid black;}
     </tr>
 </table>
 
-<p><b>Possible Solution(s):</b></p>
-<ul>
-	<li>$($inputobject.QualysKBInfo[0].SOLUTION)</li>
-</ul>
-
-<p><b>Exploitability</b></p>
-<ul>
-	<li>
-    $(if (($inputobject.QualysKBInfo[0].EXPLOITABILITY) -eq $null){
-        $exploitdata = "No Exploitation data at this time"
-        $($exploitdata)
-    }
-    else {
-        $exploitdata += "$($inputobject.QualysKBInfo[0].EXPLOITABILITY)"
-        $($exploitdata)
-    })
-
-    </li>
-</ul>
-
-<p><b>Associated Malware</b></p>
-<ul>
-	<li>
-    $(if (($inputobject.QualysKBInfo[0].MALWARE) -eq $null){
-        $malwaredata = "No Malware data at this time"
-        $($malwaredata)
-    }
-    else {
-        $malwaredata += "$($inputobject.QualysKBInfo[0].MALWARE)"
-        $($malwaredata)
-    })
-    </li>
-</ul>
+<table width="100%" style="color:#00000; font-family:Helvetica, Arial, sans-serif; font-size:12px; line-height:150%; padding-top:5px; padding-right:5px; padding-bottom:5px; padding-left:5px;">
+		<tr>
+            <th bgcolor="#A0A0A0"><center><b>Possible Solutions</b>:</th>
+            <th bgcolor="#A0A0A0"><center><b>Exploitability</b>:</th>
+            <th bgcolor="#A0A0A0"><center><b>Knwon Malware</b>:</th>
+        </tr>
+        <tr>
+            <td>$($inputobject.QualysKBInfo[0].SOLUTION)</td>
+            <td>
+                $(if (($inputobject.QualysKBInfo[0].EXPLOITABILITY) -eq $null){
+                    $exploitdata = "No Exploitation data at this time"
+                    $($exploitdata)
+                }
+                else {
+                    $exploitdata += "$($inputobject.QualysKBInfo[0].EXPLOITABILITY)"
+                    $($exploitdata)
+                })
+            </td>
+            <td>
+                $(if (($inputobject.QualysKBInfo[0].MALWARE) -eq $null){
+                    $malwaredata = "No Malware data at this time"
+                    $($malwaredata)
+                }
+                else {
+                    $malwaredata += "$($inputobject.QualysKBInfo[0].MALWARE)"
+                    $($malwaredata)
+                })
+            </td>
+	</table>
 
 <br>
 <br>
